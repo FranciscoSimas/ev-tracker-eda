@@ -1,14 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { isSameMonth, monthLabel, sessionMatchesChartRange, type ChartTimeRange } from "@/lib/storage";
+import {
+  isSameMonth,
+  monthLabel,
+  shiftMonth,
+  startOfMonth,
+} from "@/lib/storage";
 import { useAuth } from "@/hooks/useAuth";
 import { useEvData } from "@/hooks/useEvData";
 import { SessionForm } from "@/components/ev/SessionForm";
 import { SessionList } from "@/components/ev/SessionList";
 import { StatCard } from "@/components/ev/StatCard";
 import { CostChart } from "@/components/ev/CostChart";
+import { MonthBarChart } from "@/components/ev/MonthBarChart";
 import { SettingsPanel } from "@/components/ev/SettingsPanel";
-import { Zap, Euro, BatteryCharging, Route, Plus, History, Settings } from "lucide-react";
+import { ChargingSession } from "@/lib/types";
+import {
+  Zap,
+  Euro,
+  BatteryCharging,
+  Route,
+  Plus,
+  History,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -31,6 +48,7 @@ const Index = () => {
     settings,
     loading: dataLoading,
     addSession,
+    updateSession,
     removeSession,
     clearAll,
     setSettings,
@@ -39,7 +57,8 @@ const Index = () => {
   } = useEvData();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [chartTimeRange, setChartTimeRange] = useState<ChartTimeRange>("month");
+  const [editing, setEditing] = useState<ChargingSession | null>(null);
+  const [viewMonth, setViewMonth] = useState(() => startOfMonth());
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth", { replace: true });
@@ -49,14 +68,19 @@ const Index = () => {
     document.documentElement.classList.toggle("dark", settings.darkMode);
   }, [settings.darkMode]);
 
+  const byVehicle = useMemo(() => {
+    if (!settings.selectedVehicleId) return sessions;
+    return sessions.filter((s) => s.vehicleId === settings.selectedVehicleId);
+  }, [sessions, settings.selectedVehicleId]);
+
   const sorted = useMemo(
-    () => [...sessions].sort((a, b) => b.date.localeCompare(a.date)),
-    [sessions]
+    () => [...byVehicle].sort((a, b) => b.date.localeCompare(a.date)),
+    [byVehicle]
   );
 
   const monthSessions = useMemo(
-    () => sessions.filter((s) => isSameMonth(s.date)),
-    [sessions]
+    () => byVehicle.filter((s) => isSameMonth(s.date, viewMonth)),
+    [byVehicle, viewMonth]
   );
 
   const selectedVehicle = useMemo(
@@ -64,23 +88,21 @@ const Index = () => {
     [vehicles, settings.selectedVehicleId]
   );
 
-  const filteredMonthSessions = useMemo(() => {
-    if (!settings.selectedVehicleId) return monthSessions;
-    return monthSessions.filter((session) => session.vehicleId === settings.selectedVehicleId);
-  }, [monthSessions, settings.selectedVehicleId]);
+  const editingVehicle = useMemo(() => {
+    if (!editing?.vehicleId) return selectedVehicle;
+    return vehicles.find((v) => v.id === editing.vehicleId) ?? selectedVehicle;
+  }, [editing, vehicles, selectedVehicle]);
 
-  const chartSessions = useMemo(() => {
-    const byVehicle = settings.selectedVehicleId
-      ? sessions.filter((s) => s.vehicleId === settings.selectedVehicleId)
-      : sessions;
-    return byVehicle.filter((s) => sessionMatchesChartRange(s.date, chartTimeRange));
-  }, [sessions, settings.selectedVehicleId, chartTimeRange]);
+  const isCurrentMonth = isSameMonth(
+    `${viewMonth.getFullYear()}-${String(viewMonth.getMonth() + 1).padStart(2, "0")}-15`,
+    new Date()
+  );
 
-  const totalCost = filteredMonthSessions.reduce((a, s) => a + s.cost, 0);
-  const totalKwh = filteredMonthSessions.reduce((a, s) => a + s.adjustedKwh, 0);
-  const totalRawKwh = filteredMonthSessions.reduce((a, s) => a + s.rawKwh, 0);
-  const totalLostKwh = filteredMonthSessions.reduce((a, s) => a + (s.adjustedKwh - s.rawKwh), 0);
-  const avgPerSession = filteredMonthSessions.length ? totalCost / filteredMonthSessions.length : 0;
+  const totalCost = monthSessions.reduce((a, s) => a + s.cost, 0);
+  const totalKwh = monthSessions.reduce((a, s) => a + s.adjustedKwh, 0);
+  const totalRawKwh = monthSessions.reduce((a, s) => a + s.rawKwh, 0);
+  const totalLostKwh = monthSessions.reduce((a, s) => a + (s.adjustedKwh - s.rawKwh), 0);
+  const avgPerSession = monthSessions.length ? totalCost / monthSessions.length : 0;
   const consumptionPer100km = selectedVehicle?.consumptionPer100km ?? settings.consumptionPer100km;
   const costPer100km = consumptionPer100km * settings.pricePerKwh;
 
@@ -99,7 +121,7 @@ const Index = () => {
           <section className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <h1 className="text-2xl font-bold tracking-tight">EV Charger</h1>
-              <p className="text-sm text-muted-foreground capitalize">{monthLabel()}</p>
+              <p className="text-sm text-muted-foreground">Custos de carregamento</p>
             </div>
             <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
               <DialogTrigger asChild>
@@ -120,6 +142,24 @@ const Index = () => {
               </DialogContent>
             </Dialog>
           </section>
+
+          <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Editar sessão</DialogTitle>
+              </DialogHeader>
+              {editing && (
+                <SessionForm
+                  key={editing.id}
+                  settings={settings}
+                  selectedVehicle={editingVehicle}
+                  initial={editing}
+                  onUpdate={updateSession}
+                  onSubmitted={() => setEditing(null)}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
 
           {activeTab === "dashboard" && (
             <>
@@ -145,25 +185,59 @@ const Index = () => {
                 </Select>
               </section>
 
+              <section className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-card px-2 py-1.5">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={() => setViewMonth((m) => shiftMonth(m, -1))}
+                  aria-label="Mês anterior"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <button
+                  type="button"
+                  className="text-sm font-semibold capitalize truncate hover:text-primary"
+                  onClick={() => setViewMonth(startOfMonth())}
+                  title="Ir para o mês atual"
+                >
+                  {monthLabel(viewMonth)}
+                </button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={() => setViewMonth((m) => shiftMonth(m, 1))}
+                  disabled={isCurrentMonth}
+                  aria-label="Mês seguinte"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </section>
+
               {dataLoading ? (
                 <Card className="p-8 text-center text-sm text-muted-foreground border-dashed">
                   A carregar dados...
                 </Card>
-              ) : filteredMonthSessions.length === 0 ? (
+              ) : monthSessions.length === 0 ? (
                 <Card className="p-6 text-center border-dashed space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Ainda não há sessões neste mês.
+                    Ainda não há sessões em {monthLabel(viewMonth)}.
                   </p>
-                  <Button size="sm" onClick={() => setAddModalOpen(true)}>
-                    <Plus className="h-4 w-4 mr-1" /> Registar primeira sessão
-                  </Button>
+                  {isCurrentMonth && (
+                    <Button size="sm" onClick={() => setAddModalOpen(true)}>
+                      <Plus className="h-4 w-4 mr-1" /> Registar sessão
+                    </Button>
+                  )}
                 </Card>
               ) : (
                 <section className="grid grid-cols-2 gap-3">
                   <StatCard
                     label="Custo do mês"
                     value={`${totalCost.toFixed(2)} €`}
-                    hint={`${filteredMonthSessions.length} sessão${filteredMonthSessions.length === 1 ? "" : "s"}`}
+                    hint={`${monthSessions.length} sessão${monthSessions.length === 1 ? "" : "s"}`}
                     icon={<Euro className="h-4 w-4" />}
                     accent
                   />
@@ -202,37 +276,25 @@ const Index = () => {
                 </section>
               )}
 
-              <section className="space-y-1.5">
-                <p className="text-xs text-muted-foreground">Período dos gráficos</p>
-                <Select
-                  value={chartTimeRange}
-                  onValueChange={(value) => setChartTimeRange(value as ChartTimeRange)}
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="month">Mês atual</SelectItem>
-                    <SelectItem value="3months">Últimos 3 meses</SelectItem>
-                    <SelectItem value="all">Total</SelectItem>
-                  </SelectContent>
-                </Select>
-              </section>
-
-              <CostChart sessions={chartSessions} metric="cost" title="Custo ao longo do tempo (€)" />
-              <CostChart sessions={chartSessions} metric="kwh" title="Energia ao longo do tempo (kWh)" />
+              <MonthBarChart sessions={byVehicle} metric="cost" title="Custo por mês (€)" />
+              <CostChart sessions={monthSessions} metric="cost" title="Sessões do mês (€)" />
             </>
           )}
 
           {activeTab === "history" && (
             <section>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3 gap-2">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                   Histórico
                 </h2>
-                <span className="text-xs text-muted-foreground">{sessions.length} total</span>
+                <span className="text-xs text-muted-foreground">{sorted.length} total</span>
               </div>
-              <SessionList sessions={sorted} vehicles={vehicles} onDelete={removeSession} />
+              <SessionList
+                sessions={sorted}
+                vehicles={vehicles}
+                onDelete={removeSession}
+                onEdit={setEditing}
+              />
             </section>
           )}
 

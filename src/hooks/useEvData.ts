@@ -111,6 +111,32 @@ export function useEvData() {
     if (data) setSessions((prev) => [fromDb(data as DbSession), ...prev]);
   };
 
+  const updateSession = async (id: string, s: Omit<ChargingSession, "id">) => {
+    const { data, error } = await supabase
+      .from("charging_sessions")
+      .update({
+        date: s.date,
+        raw_kwh: s.rawKwh,
+        adjusted_kwh: s.adjustedKwh,
+        cost: s.cost,
+        losses_applied: s.lossesApplied,
+        battery_start: s.batteryStart ?? null,
+        battery_end: s.batteryEnd ?? null,
+        vehicle_id: s.vehicleId ?? null,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) {
+      toast.error("Erro a atualizar sessão");
+      return;
+    }
+    if (data) {
+      const updated = fromDb(data as DbSession);
+      setSessions((prev) => prev.map((row) => (row.id === id ? updated : row)));
+    }
+  };
+
   const removeSession = async (id: string) => {
     const { error } = await supabase.from("charging_sessions").delete().eq("id", id);
     if (error) {
@@ -191,6 +217,7 @@ export function useEvData() {
     settings,
     loading,
     addSession,
+    updateSession,
     removeSession,
     clearAll,
     setSettings,

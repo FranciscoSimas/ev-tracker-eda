@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AppSettings, ChargingSession, DEFAULT_SETTINGS, Vehicle } from "@/lib/types";
-import { exportCsv } from "@/lib/storage";
-import { Car, Download, LogOut, Moon, Sun, Trash2 } from "lucide-react";
+import { Car, LogOut, Moon, Sun, Trash2 } from "lucide-react";
 
 interface Props {
   settings: AppSettings;
@@ -219,14 +218,6 @@ export function SettingsPanel({
       </div>
 
       <div className="pt-2 border-t space-y-2">
-        <Button
-          variant="outline"
-          className="w-full h-10"
-          onClick={() => exportCsv(sessions)}
-          disabled={sessions.length === 0}
-        >
-          <Download className="h-4 w-4 mr-2" /> Exportar CSV
-        </Button>
         <Button variant="outline" className="w-full h-10" onClick={() => setSettings({ ...DEFAULT_SETTINGS, selectedVehicleId: settings.selectedVehicleId })}>
           Repor predefinições
         </Button>

@@ -15,7 +15,7 @@ Fiz esta app para controlar o custo dos carregamentos, com preço base, IVA e pe
 - Vários veículos
 - Tarifas (preço base, IVA, % perdas)
 - Estatísticas do mês e gráficos de custo/energia
-- Exportação CSV
+- Edição de sessões
 
 ## Tecnologias Utilizadas
 

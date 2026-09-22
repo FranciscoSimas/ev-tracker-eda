@@ -15,7 +15,7 @@ I built this app to keep charging costs under control, with configurable base pr
 - Multiple vehicles
 - Tariffs (base price, VAT, loss %)
 - Monthly stats and cost/energy charts
-- CSV export
+- Edit charging sessions
 
 ## Technologies Used
 

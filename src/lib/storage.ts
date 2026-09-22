@@ -12,58 +12,93 @@ export function calcSession(
 }
 
 export function isSameMonth(iso: string, ref = new Date()) {
-  const d = new Date(iso);
+  const d = new Date(iso + "T12:00:00");
   return (
     d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth()
   );
 }
 
-/** Intervalo usado só nos gráficos (não altera os cards mensais). */
-export type ChartTimeRange = "month" | "3months" | "all";
-
-function toLocalYmd(d: Date) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+export function monthKeyFromDate(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
-/** Sessão incluída no intervalo escolhido (datas ISO yyyy-mm-dd). */
-export function sessionMatchesChartRange(
-  isoDate: string,
-  range: ChartTimeRange,
-  ref = new Date()
-): boolean {
-  if (range === "all") return true;
-  if (range === "month") return isSameMonth(isoDate, ref);
-  const y = ref.getFullYear();
-  const m = ref.getMonth();
-  const start = new Date(y, m - 2, 1);
-  const end = new Date(y, m + 1, 0);
-  return isoDate >= toLocalYmd(start) && isoDate <= toLocalYmd(end);
+export function monthKeyFromIso(iso: string) {
+  return iso.slice(0, 7);
+}
+
+export function startOfMonth(d = new Date()) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+export function shiftMonth(d: Date, delta: number) {
+  return new Date(d.getFullYear(), d.getMonth() + delta, 1);
 }
 
 export function monthLabel(d: Date = new Date()) {
   return d.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
 }
 
-export function exportCsv(sessions: ChargingSession[]) {
-  const header = "Date,Raw kWh,Adjusted kWh,Losses,Cost (€)\n";
-  const rows = sessions
-    .map(
-      (s) =>
-        `${s.date},${s.rawKwh.toFixed(3)},${s.adjustedKwh.toFixed(3)},${
-          s.lossesApplied ? "yes" : "no"
-        },${s.cost.toFixed(2)}`
-    )
-    .join("\n");
-  const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `ev-charging-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+export function monthLabelFromKey(key: string) {
+  const [y, m] = key.split("-").map(Number);
+  return monthLabel(new Date(y, m - 1, 1));
+}
+
+export type MonthGroup = {
+  key: string;
+  label: string;
+  sessions: ChargingSession[];
+  totalCost: number;
+  totalKwh: number;
+};
+
+export function groupSessionsByMonth(sessions: ChargingSession[]): MonthGroup[] {
+  const map = new Map<string, ChargingSession[]>();
+  for (const s of sessions) {
+    const key = monthKeyFromIso(s.date);
+    const list = map.get(key);
+    if (list) list.push(s);
+    else map.set(key, [s]);
+  }
+  return [...map.entries()]
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([key, list]) => {
+      const sorted = [...list].sort((a, b) => b.date.localeCompare(a.date));
+      return {
+        key,
+        label: monthLabelFromKey(key),
+        sessions: sorted,
+        totalCost: sorted.reduce((a, s) => a + s.cost, 0),
+        totalKwh: sorted.reduce((a, s) => a + s.adjustedKwh, 0),
+      };
+    });
+}
+
+export type MonthlyTotal = {
+  key: string;
+  label: string;
+  shortLabel: string;
+  cost: number;
+  kwh: number;
+  count: number;
+};
+
+export function monthlyTotals(
+  sessions: ChargingSession[],
+  limitMonths = 12
+): MonthlyTotal[] {
+  const groups = groupSessionsByMonth(sessions);
+  return groups.slice(0, limitMonths).reverse().map((g) => {
+    const [y, m] = g.key.split("-").map(Number);
+    const d = new Date(y, m - 1, 1);
+    return {
+      key: g.key,
+      label: g.label,
+      shortLabel: d.toLocaleDateString("pt-PT", { month: "short", year: "2-digit" }),
+      cost: +g.totalCost.toFixed(2),
+      kwh: +g.totalKwh.toFixed(2),
+      count: g.sessions.length,
+    };
+  });
 }
 
 export { DEFAULT_SETTINGS };
