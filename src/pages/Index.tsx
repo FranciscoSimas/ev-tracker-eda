@@ -13,6 +13,8 @@ import { SessionList } from "@/components/ev/SessionList";
 import { StatCard } from "@/components/ev/StatCard";
 import { CostChart } from "@/components/ev/CostChart";
 import { MonthBarChart } from "@/components/ev/MonthBarChart";
+import { WeekdayChart } from "@/components/ev/WeekdayChart";
+import { CumulativeChart } from "@/components/ev/CumulativeChart";
 import { SettingsPanel } from "@/components/ev/SettingsPanel";
 import { ChargingSession } from "@/lib/types";
 import {
@@ -49,6 +51,7 @@ const Index = () => {
     loading: dataLoading,
     addSession,
     updateSession,
+    updateVehicle,
     removeSession,
     clearAll,
     setSettings,
@@ -277,7 +280,10 @@ const Index = () => {
               )}
 
               <MonthBarChart sessions={byVehicle} metric="cost" title="Custo por mês (€)" />
+              <MonthBarChart sessions={byVehicle} metric="kwh" title="Energia por mês (kWh)" />
               <CostChart sessions={monthSessions} metric="cost" title="Sessões do mês (€)" />
+              <WeekdayChart sessions={byVehicle} />
+              <CumulativeChart sessions={byVehicle} />
             </>
           )}
 
@@ -304,6 +310,7 @@ const Index = () => {
               setSettings={setSettings}
               vehicles={vehicles}
               addVehicle={addVehicle}
+              updateVehicle={updateVehicle}
               removeVehicle={removeVehicle}
               sessions={sessions}
               onClearAll={clearAll}

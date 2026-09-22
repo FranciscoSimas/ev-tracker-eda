@@ -137,6 +137,31 @@ export function useEvData() {
     }
   };
 
+  const updateVehicle = async (
+    id: string,
+    vehicle: Omit<Vehicle, "id" | "isDefault">
+  ) => {
+    const { data, error } = await supabase
+      .from("vehicles")
+      .update({
+        name: vehicle.name,
+        battery_capacity_kwh: vehicle.batteryCapacityKwh,
+        consumption_per_100km: vehicle.consumptionPer100km ?? null,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) {
+      toast.error("Erro a atualizar veículo");
+      return;
+    }
+    if (data) {
+      const updated = fromVehicleDb(data as DbVehicle);
+      setVehicles((prev) => prev.map((row) => (row.id === id ? updated : row)));
+      toast.success("Veículo atualizado");
+    }
+  };
+
   const removeSession = async (id: string) => {
     const { error } = await supabase.from("charging_sessions").delete().eq("id", id);
     if (error) {
@@ -218,6 +243,7 @@ export function useEvData() {
     loading,
     addSession,
     updateSession,
+    updateVehicle,
     removeSession,
     clearAll,
     setSettings,

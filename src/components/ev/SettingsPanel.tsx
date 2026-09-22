@@ -5,13 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AppSettings, ChargingSession, DEFAULT_SETTINGS, Vehicle } from "@/lib/types";
-import { Car, LogOut, Moon, Sun, Trash2 } from "lucide-react";
+import { Car, Check, LogOut, Moon, Pencil, Sun, Trash2, X } from "lucide-react";
 
 interface Props {
   settings: AppSettings;
   setSettings: (s: AppSettings) => void | Promise<void>;
   vehicles: Vehicle[];
   addVehicle: (vehicle: Omit<Vehicle, "id" | "isDefault">) => void | Promise<void>;
+  updateVehicle: (id: string, vehicle: Omit<Vehicle, "id" | "isDefault">) => void | Promise<void>;
   removeVehicle: (id: string) => void | Promise<void>;
   sessions: ChargingSession[];
   onClearAll: () => void | Promise<void>;
@@ -23,6 +24,7 @@ export function SettingsPanel({
   setSettings,
   vehicles,
   addVehicle,
+  updateVehicle,
   removeVehicle,
   sessions,
   onClearAll,
@@ -31,6 +33,10 @@ export function SettingsPanel({
   const [vehicleName, setVehicleName] = useState("");
   const [vehicleBattery, setVehicleBattery] = useState("");
   const [vehicleConsumption, setVehicleConsumption] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editBattery, setEditBattery] = useState("");
+  const [editConsumption, setEditConsumption] = useState("");
 
   function update<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
     setSettings({ ...settings, [key]: value });
@@ -54,6 +60,28 @@ export function SettingsPanel({
     setVehicleName("");
     setVehicleBattery("");
     setVehicleConsumption("");
+  }
+
+  function startEdit(vehicle: Vehicle) {
+    setEditingId(vehicle.id);
+    setEditName(vehicle.name);
+    setEditBattery(String(vehicle.batteryCapacityKwh));
+    setEditConsumption(
+      vehicle.consumptionPer100km != null ? String(vehicle.consumptionPer100km) : ""
+    );
+  }
+
+  async function saveEdit() {
+    if (!editingId) return;
+    const battery = parseFloat(editBattery);
+    const consumption = parseFloat(editConsumption);
+    if (!editName.trim() || Number.isNaN(battery) || battery <= 0) return;
+    await updateVehicle(editingId, {
+      name: editName.trim(),
+      batteryCapacityKwh: battery,
+      consumptionPer100km: editConsumption && !Number.isNaN(consumption) ? consumption : null,
+    });
+    setEditingId(null);
   }
 
   return (
@@ -102,7 +130,10 @@ export function SettingsPanel({
           placeholder="Opcional"
         />
         <p className="text-xs text-muted-foreground">
-          Custo real aplicado: <span className="font-semibold text-foreground">{settings.pricePerKwh.toFixed(4)} € / kWh</span>
+          Custo real aplicado:{" "}
+          <span className="font-semibold text-foreground">
+            {settings.pricePerKwh.toFixed(4)} € / kWh
+          </span>
         </p>
       </div>
 
@@ -181,13 +212,67 @@ export function SettingsPanel({
           )}
           {vehicles.map((vehicle) => {
             const isSelected = settings.selectedVehicleId === vehicle.id;
+            const isEditing = editingId === vehicle.id;
+
+            if (isEditing) {
+              return (
+                <div key={vehicle.id} className="rounded-xl border border-primary/40 p-3 space-y-2">
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="h-9"
+                    placeholder="Nome"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="number"
+                      step="0.1"
+                      inputMode="decimal"
+                      value={editBattery}
+                      onChange={(e) => setEditBattery(e.target.value)}
+                      className="h-9"
+                      placeholder="Bateria (kWh)"
+                    />
+                    <Input
+                      type="number"
+                      step="0.1"
+                      inputMode="decimal"
+                      value={editConsumption}
+                      onChange={(e) => setEditConsumption(e.target.value)}
+                      className="h-9"
+                      placeholder="kWh/100km"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="button" size="sm" className="flex-1 h-8" onClick={saveEdit}>
+                      <Check className="h-4 w-4 mr-1" /> Guardar
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-8"
+                      onClick={() => setEditingId(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            }
+
             return (
-              <div key={vehicle.id} className="rounded-xl border border-border/70 p-3 flex items-center justify-between gap-2">
+              <div
+                key={vehicle.id}
+                className="rounded-xl border border-border/70 p-3 flex items-center justify-between gap-2"
+              >
                 <div className="min-w-0">
                   <p className="text-sm font-semibold truncate">{vehicle.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {vehicle.batteryCapacityKwh.toFixed(1)} kWh
-                    {vehicle.consumptionPer100km != null ? ` · ${vehicle.consumptionPer100km.toFixed(1)} kWh/100km` : ""}
+                    {vehicle.consumptionPer100km != null
+                      ? ` · ${vehicle.consumptionPer100km.toFixed(1)} kWh/100km`
+                      : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -204,8 +289,22 @@ export function SettingsPanel({
                     type="button"
                     variant="ghost"
                     size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    onClick={() => startEdit(vehicle)}
+                    aria-label="Editar veículo"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
                     className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    onClick={() => removeVehicle(vehicle.id)}
+                    onClick={() => {
+                      if (window.confirm(`Apagar o veículo "${vehicle.name}"?`)) {
+                        removeVehicle(vehicle.id);
+                      }
+                    }}
                     aria-label="Apagar veículo"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -218,7 +317,13 @@ export function SettingsPanel({
       </div>
 
       <div className="pt-2 border-t space-y-2">
-        <Button variant="outline" className="w-full h-10" onClick={() => setSettings({ ...DEFAULT_SETTINGS, selectedVehicleId: settings.selectedVehicleId })}>
+        <Button
+          variant="outline"
+          className="w-full h-10"
+          onClick={() =>
+            setSettings({ ...DEFAULT_SETTINGS, selectedVehicleId: settings.selectedVehicleId })
+          }
+        >
           Repor predefinições
         </Button>
         <Button
