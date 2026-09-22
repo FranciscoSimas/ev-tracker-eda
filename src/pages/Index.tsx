@@ -15,6 +15,7 @@ import { CostChart } from "@/components/ev/CostChart";
 import { MonthBarChart } from "@/components/ev/MonthBarChart";
 import { WeekdayChart } from "@/components/ev/WeekdayChart";
 import { CumulativeChart } from "@/components/ev/CumulativeChart";
+import { FuelCompare } from "@/components/ev/FuelCompare";
 import { SettingsPanel } from "@/components/ev/SettingsPanel";
 import { ChargingSession } from "@/lib/types";
 import {
@@ -292,9 +293,14 @@ const Index = () => {
                   Dados
                 </h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Comparações por mês e por dia da semana
+                  Comparações e análise de custos
                 </p>
               </div>
+              <FuelCompare
+                settings={settings}
+                selectedVehicle={selectedVehicle}
+                sessions={byVehicle}
+              />
               <MonthBarChart sessions={byVehicle} metric="cost" title="Custo por mês (€)" />
               <MonthBarChart sessions={byVehicle} metric="kwh" title="Energia por mês (kWh)" />
               <WeekdayChart sessions={byVehicle} />
