@@ -27,6 +27,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -39,7 +40,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-type Tab = "dashboard" | "history" | "settings";
+type Tab = "dashboard" | "stats" | "history" | "settings";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -279,12 +280,25 @@ const Index = () => {
                 </section>
               )}
 
-              <MonthBarChart sessions={byVehicle} metric="cost" title="Custo por mês (€)" />
-              <MonthBarChart sessions={byVehicle} metric="kwh" title="Energia por mês (kWh)" />
               <CostChart sessions={monthSessions} metric="cost" title="Sessões do mês (€)" />
-              <WeekdayChart sessions={byVehicle} />
               <CumulativeChart sessions={byVehicle} />
             </>
+          )}
+
+          {activeTab === "stats" && (
+            <section className="space-y-4">
+              <div>
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                  Dados
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Comparações por mês e por dia da semana
+                </p>
+              </div>
+              <MonthBarChart sessions={byVehicle} metric="cost" title="Custo por mês (€)" />
+              <MonthBarChart sessions={byVehicle} metric="kwh" title="Energia por mês (kWh)" />
+              <WeekdayChart sessions={byVehicle} />
+            </section>
           )}
 
           {activeTab === "history" && (
@@ -325,6 +339,7 @@ const Index = () => {
           {(
             [
               { id: "dashboard" as const, label: "Início", icon: Zap },
+              { id: "stats" as const, label: "Dados", icon: BarChart3 },
               { id: "history" as const, label: "Histórico", icon: History },
               { id: "settings" as const, label: "Definições", icon: Settings },
             ] as const
