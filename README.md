@@ -1,23 +1,23 @@
-# ⚡ EV Tracker EDA
+# EV Tracker EDA
 
 **Last update:** 22/09/2026
 
 Web app to log EV charging sessions, track cost and energy over time, and manage vehicles and tariffs.
 
-## 📖 About
+## About
 
-I built this app to keep charging costs under control — especially with configurable base price, VAT and charging losses. You can register sessions, follow monthly stats and charts, and manage more than one vehicle. Login and data live on Supabase. Deploy is on Vercel.
+I built this app to keep charging costs under control, with configurable base price, VAT and charging losses. You can register sessions, follow monthly stats and charts, and manage more than one vehicle. Login and data live on Supabase. Deploy is on Vercel.
 
-## ✨ Main Features
+## Main Features
 
-- 🔐 Auth (email/password + Google)
-- 🔋 Charging session log (kWh, battery %, losses)
-- 🚗 Multiple vehicles
-- 💶 Tariffs (base price, VAT, loss %)
-- 📊 Monthly stats and cost/energy charts
-- 📥 CSV export
+- Auth (email/password + Google)
+- Charging session log (kWh, battery %, losses)
+- Multiple vehicles
+- Tariffs (base price, VAT, loss %)
+- Monthly stats and cost/energy charts
+- CSV export
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 ### Frontend
 - React 18
@@ -30,7 +30,7 @@ I built this app to keep charging costs under control — especially with config
 - Supabase (Auth + PostgreSQL)
 - Vercel (deploy)
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ev-tracker-eda/
@@ -48,14 +48,14 @@ ev-tracker-eda/
 └── package.json
 ```
 
-## 🤝 Contributing
+## Contributing
 
 This is a personal project. Suggestions are welcome, but I am not looking for active contributors right now.
 
-## 📄 License
+## License
 
 Personal and educational use.
 
-## 🔗 Links
+## Links
 
 - **Repository:** https://github.com/FranciscoSimas/ev-tracker-eda

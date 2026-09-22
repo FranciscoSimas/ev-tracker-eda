@@ -233,7 +233,11 @@ export function SettingsPanel({
         <Button
           variant="destructive"
           className="w-full h-10"
-          onClick={onClearAll}
+          onClick={() => {
+            if (window.confirm("Apagar todas as sessões? Esta ação não se pode desfazer.")) {
+              onClearAll();
+            }
+          }}
           disabled={sessions.length === 0}
         >
           Apagar todas as sessões

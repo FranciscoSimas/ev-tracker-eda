@@ -1,23 +1,23 @@
-# ⚡ EV Tracker EDA
+# EV Tracker EDA
 
 **Último update:** 22/09/2026
 
 App web para registar sessões de carregamento EV, acompanhar custo e energia ao longo do tempo, e gerir veículos e tarifas.
 
-## 📖 Sobre
+## Sobre
 
-Fiz esta app para controlar o custo dos carregamentos — com preço base, IVA e perdas configuráveis. Dá para registar sessões, ver estatísticas e gráficos do mês, e gerir mais do que um veículo. O login e os dados ficam no Supabase. O deploy é no Vercel.
+Fiz esta app para controlar o custo dos carregamentos, com preço base, IVA e perdas configuráveis. Dá para registar sessões, ver estatísticas e gráficos do mês, e gerir mais do que um veículo. O login e os dados ficam no Supabase. O deploy é no Vercel.
 
-## ✨ Funcionalidades Principais
+## Funcionalidades Principais
 
-- 🔐 Autenticação (email/password + Google)
-- 🔋 Registo de sessões (kWh, % bateria, perdas)
-- 🚗 Vários veículos
-- 💶 Tarifas (preço base, IVA, % perdas)
-- 📊 Estatísticas do mês e gráficos de custo/energia
-- 📥 Exportação CSV
+- Autenticação (email/password + Google)
+- Registo de sessões (kWh, % bateria, perdas)
+- Vários veículos
+- Tarifas (preço base, IVA, % perdas)
+- Estatísticas do mês e gráficos de custo/energia
+- Exportação CSV
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 ### Frontend
 - React 18
@@ -30,7 +30,7 @@ Fiz esta app para controlar o custo dos carregamentos — com preço base, IVA e
 - Supabase (Auth + PostgreSQL)
 - Vercel (deploy)
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 ev-tracker-eda/
@@ -48,14 +48,14 @@ ev-tracker-eda/
 └── package.json
 ```
 
-## 🤝 Contribuir
+## Contribuir
 
 Este é um projeto pessoal. Sugestões são bem-vindas, mas neste momento não estou à procura de contribuidores ativos.
 
-## 📄 Licença
+## Licença
 
 Uso pessoal e educacional.
 
-## 🔗 Links
+## Links
 
 - **Repositório:** https://github.com/FranciscoSimas/ev-tracker-eda

@@ -117,3 +117,14 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide Lovable "Edit with Lovable" badge if injected by their host */
+a[href*="lovable.dev"],
+a[href*="lovable.app"],
+#lovable-badge,
+[data-lovable-badge],
+iframe[src*="lovable"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

@@ -36,7 +36,7 @@ export function CostChart({ sessions, metric, title }: Props) {
       <h3 className="text-xs font-medium text-muted-foreground mb-3">{title}</h3>
       {data.length === 0 ? (
         <div className="h-40 flex items-center justify-center text-xs text-muted-foreground">
-          Sem dados para este mês.
+          Sem dados neste período.
         </div>
       ) : (
       <div className="h-48">
