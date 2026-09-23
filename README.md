@@ -1,23 +1,26 @@
-# EV Tracker EDA
+# **Last update:** 23/09/2026
 
-**Last update:** 22/09/2026
+# ⚡ EV Tracker EDA
 
-Web app to log EV charging sessions, track cost and energy over time, and manage vehicles and tariffs.
+Web app to log EV charging sessions, track cost and energy over time, and compare with a fuel car.
 
-## About
+## 📖 About
 
-I built this app to keep charging costs under control, with configurable base price, VAT and charging losses. You can register sessions, follow monthly stats and charts, and manage more than one vehicle. Login and data live on Supabase. Deploy is on Vercel.
+I built this app to keep charging costs under control. You set base price, VAT and charging losses, register sessions, follow monthly stats and charts, and manage more than one vehicle. There is also a simple EV vs fuel cost comparison. Login and data live on Supabase. Deploy is on Lovable.
 
-## Main Features
+## ✨ Main Features
 
-- Auth (email/password + Google)
-- Charging session log (kWh, battery %, losses)
-- Multiple vehicles
-- Tariffs (base price, VAT, loss %)
-- Monthly stats and cost/energy charts
-- Edit charging sessions
+- 🔐 Auth (email/password + Google)
+- 🔋 Charging sessions (kWh, battery %, losses)
+- ✏️ Edit sessions
+- 🚗 Multiple vehicles (add and edit)
+- 💶 Tariffs (base price, VAT, loss %)
+- 📅 Month navigation on the home screen
+- 📊 Charts (monthly cost and energy, sessions, weekday average, cumulative)
+- 📈 History grouped by month
+- ⚖️ EV vs fuel cost comparison
 
-## Technologies Used
+## 🛠️ Technologies Used
 
 ### Frontend
 - React 18
@@ -25,12 +28,13 @@ I built this app to keep charging costs under control, with configurable base pr
 - Vite
 - Tailwind CSS
 - shadcn/ui
+- Recharts
 
 ### Backend
 - Supabase (Auth + PostgreSQL)
-- Vercel (deploy)
+- Lovable (hosting)
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 ev-tracker-eda/
@@ -48,14 +52,15 @@ ev-tracker-eda/
 └── package.json
 ```
 
-## Contributing
+## 🤝 Contributing
 
 This is a personal project. Suggestions are welcome, but I am not looking for active contributors right now.
 
-## License
+## 📄 License
 
 Personal and educational use.
 
-## Links
+## 🔗 Links
 
 - **Repository:** https://github.com/FranciscoSimas/ev-tracker-eda
+- **Live app:** https://ev-tracker-eda.lovable.app
